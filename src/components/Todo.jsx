@@ -6,28 +6,32 @@ class Todo extends React.Component {
     this.state = {
       todos: [
         {
-            text: "Learn react",
-            id: 1
-        }
+          text: "Learn react",
+          id: 1,
+        },
       ],
       inputValue: " ",
-    }
-    
-  }
- 
-  addTodo=()=> {
-    const usedId = this.state.todos.map((e)=>e.id);
-    const addId = Math.max(...usedId)+1
-   
-     this.setState({ todos: [...this.state.todos, {text:this.state.inputValue, id:addId}] });
-     this.setState({inputValue:''})
+    };
   }
 
-  deleteTodo = (id)=>{
-     const deleteTodosItems = this.state.todos.filter(todo => todo.id!==id)
-       this.setState({todos:deleteTodosItems})
-      
-  }
+  addTodo = () => {
+    const usedId = this.state.todos.map((e) => e.id);
+    const addId = Math.max(...usedId) + 1;
+
+    if (this.state.inputValue !== "") {
+      this.setState({
+        todos: [
+          ...this.state.todos,
+          { text: this.state.inputValue, id: addId },
+        ],
+      });
+      this.setState({ inputValue: "" });
+    }
+  };
+  deleteTodo = (id) => {
+    const deleteTodosItems = this.state.todos.filter((todo) => todo.id !== id);
+    this.setState({ todos: deleteTodosItems });
+  };
 
   render() {
     return (
@@ -39,10 +43,12 @@ class Todo extends React.Component {
             <ul>
               {this.state.todos.map((todo) => (
                 <li key={todo.id}>
-                <div>{todo.text}
-                <button onClick={()=>this.deleteTodo(todo.id)}>Delete</button>
-                </div>
-             
+                  <div>
+                    {todo.text}
+                    <button onClick={() => this.deleteTodo(todo.id)}>
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
