@@ -25,6 +25,7 @@ class Todo extends React.Component {
         id: undefined,
         inputValue: "",
       },
+      inputStyle: false,
     };
   }
 
@@ -58,23 +59,28 @@ class Todo extends React.Component {
     });
   };
 
-  addEdit=()=>{
-    const todo = [...this.state.todos]
-    todo.map((e)=>{
-        if (e.id === this.state.editInput.id){
-            e.text = this.state.editInput.inputValue
-        }
-       
-    })
-    this.setState({todos:todo})
+  addEdit = () => {
+    const todo = [...this.state.todos];
+    todo.map((e) => {
+      if (e.id === this.state.editInput.id) {
+        e.text = this.state.editInput.inputValue;
+      }
+    });
+    this.setState({ todos: todo });
     this.setState({
-        editInput:{
-           edit:false
-        }
-    })
-   
-   
-  }
+      editInput: {
+        edit: false,
+      },
+    });
+  };
+
+  handleDone = (id) => {
+    this.setState((prevState) => ({
+        todos: prevState.todos.map((todo) =>
+          todo.id === id ? { ...todo, inputStyle: true } : todo
+        )
+      }));
+  };
 
   render() {
     return (
@@ -87,12 +93,20 @@ class Todo extends React.Component {
               <ul>
                 {this.state.todos.map((todo) => (
                   <>
-                    <li key={todo.id}>{todo.text}</li>
+                    <li
+                       style={todo.inputStyle ? { textDecoration: 'line-through', color:'#E84A4A' } : null}
+                      key={todo.id}
+                    >
+                      {todo.text}
+                    </li>
                     <button onClick={() => this.deleteTodo(todo.id)}>
                       Delete
                     </button>
                     <button onClick={() => this.editTodo(todo.id, todo.text)}>
                       Edit
+                    </button>
+                    <button onClick={() => this.handleDone(todo.id)}>
+                      Mark As Done
                     </button>
                   </>
                 ))}
