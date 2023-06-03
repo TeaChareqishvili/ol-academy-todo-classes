@@ -9,106 +9,222 @@ class Todo extends React.Component {
         {
           text: "Learn React",
           id: 1,
+          inputStyle: false
         },
         {
           text: "Learn Js",
           id: 2,
+          inputStyle: false
         },
         {
-          text: "learn Scss",
+          text: "Learn Scss",
           id: 3,
-        },
+          inputStyle: false
+        }
       ],
-      inputValue: " ",
+      inputValue: "",
       editInput: {
         edit: false,
         id: undefined,
-        inputValue: "",
-      },
-      inputStyle: false,
+        inputValue: ""
+      }
     };
   }
 
-  // პირველად თუ დავაკლიკე ცარიელ ინფუთს ლისტში ამატებს ცარიელს და მერე აღარ. ????
   addTodo = () => {
-    const usedId = this.state.todos.map((e) => e.id);
-    const addId = Math.max(...usedId) + 1;
-
-    if (this.state.inputValue !== "") {
-      this.setState({
-        todos: [
-          ...this.state.todos,
-          { text: this.state.inputValue, id: addId },
-        ],
-      });
-      this.setState({ inputValue: "" });
+    const { todos, inputValue } = this.state;
+    const usedIds = todos.map((todo) => todo.id);
+    const maxId = Math.max(...usedIds);
+    const newId = maxId + 1;
+  
+    if (inputValue.trim() !== "") {
+      const isDuplicate = todos.some((todo) => todo.text === inputValue);
+  
+      if (isDuplicate) {
+        alert('Item already exists in the todo list');
+      } else {
+        const newTodo = {
+          text: inputValue,
+          id: newId,
+          inputStyle: false
+        };
+  
+        this.setState((prevState) => ({
+          todos: [...prevState.todos, newTodo],
+          inputValue: ""
+        }));
+      }
     }
   };
+  
+
   deleteTodo = (id) => {
-    const deleteTodosItems = this.state.todos.filter((todo) => todo.id !== id);
-    this.setState({ todos: deleteTodosItems });
+    this.setState((prevState) => ({
+      todos: prevState.todos.filter((todo) => todo.id !== id)
+    }));
   };
 
   editTodo = (id, inputValue) => {
+    
     this.setState({
       editInput: {
         id,
         edit: true,
-        inputValue,
-      },
+        inputValue
+      }
     });
   };
 
   addEdit = () => {
-    const todo = [...this.state.todos];
-    todo.map((e) => {
-      if (e.id === this.state.editInput.id) {
-        e.text = this.state.editInput.inputValue;
-      }
-    });
-    this.setState({ todos: todo });
-    this.setState({
-      editInput: {
-        edit: false,
-      },
-    });
+    const { todos, editInput } = this.state;
+    const { id, inputValue } = editInput;
+  
+    const isDuplicate = todos.some((todo) => todo.text === inputValue && todo.id !== id);
+  
+    if (isDuplicate) {
+      alert('Item with the same text already exists in the todo list');
+    } else {
+      const updatedTodos = todos.map((todo) =>
+        todo.id === id ? { ...todo, text: inputValue } : todo
+      );
+  
+      this.setState({
+        todos: updatedTodos,
+        editInput: {
+          edit: false,
+          id: undefined,
+          inputValue: "",
+        },
+      });
+    }
   };
+  
 
   handleDone = (id) => {
     this.setState((prevState) => ({
-        todos: prevState.todos.map((todo) =>
-          todo.id === id ? { ...todo, inputStyle: true } : todo
-        )
-      }));
+      todos: prevState.todos.map((todo) =>
+        todo.id === id ? { ...todo, inputStyle: !todo.inputStyle } : todo
+      )
+    }));
+  };
+
+  handleDeleteCompletedTasks = () => {
+    this.setState((prevState) => ({
+      todos: prevState.todos.filter((todo) => !todo.inputStyle)
+    }));
+  };
+
+  handleMoveUp = (id) => {
+    const { todos } = this.state;
+    const index = todos.findIndex((todo) => todo.id === id);
+
+    if (index > 0) {
+      const updatedTodos = [...todos];
+      [updatedTodos[index], updatedTodos[index - 1]] = [
+        updatedTodos[index - 1],
+        updatedTodos[index]
+      ];
+
+      this.setState({
+        todos: updatedTodos
+      });
+    }
+  };
+
+  handleMoveDown = (id) => {
+    const { todos } = this.state;
+    const index = todos.findIndex((todo) => todo.id === id);
+
+    if (index < todos.length - 1) {
+      const updatedTodos = [...todos];
+      [updatedTodos[index], updatedTodos[index + 1]] = [
+        updatedTodos[index + 1],
+        updatedTodos[index]
+      ];
+
+      this.setState({
+        todos: updatedTodos
+      });
+    }
+  };
+
+  deleteAll = () => {
+    this.setState({
+      todos: []
+    });
   };
 
   render() {
+    const { todos, inputValue, editInput } = this.state;
+
     return (
       <div className="todoWrapper">
         <div className="todo">
           <h1>Todo list</h1>
 
-          {this.state.todos.length > 0 ? (
+          {todos.length > 0 ? (
             <div className="list">
               <ul>
-                {this.state.todos.map((todo) => (
-                  <>
-                    <li
-                       style={todo.inputStyle ? { textDecoration: 'line-through', color:'#E84A4A' } : null}
-                      key={todo.id}
-                    >
-                      {todo.text}
-                    </li>
-                    <button onClick={() => this.deleteTodo(todo.id)}>
-                      Delete
-                    </button>
-                    <button onClick={() => this.editTodo(todo.id, todo.text)}>
-                      Edit
-                    </button>
-                    <button onClick={() => this.handleDone(todo.id)}>
-                      Mark As Done
-                    </button>
-                  </>
+                {todos.map((todo) => (
+                  <div key={todo.id}>
+                    {editInput.edit && editInput.id === todo.id ? (
+                      <div>
+                        <input
+                          type="text"
+                          value={editInput.inputValue}
+                          onChange={(e) => {
+                            this.setState((prevState) => ({
+                              editInput: {
+                                ...prevState.editInput,
+                                inputValue: e.target.value
+                              }
+                            }));
+                          }}
+                        />
+                        <button onClick={this.addEdit}>Save</button>
+                      </div>
+                    ) : (
+                      <div>
+                        <li
+                          style={
+                            todo.inputStyle
+                              ? {
+                                  textDecoration: "line-through",
+                                  color: "#E84A4A"
+                                }
+                              : null
+                          }
+                        >
+                          {todo.text}
+                        </li>
+                        <button onClick={() => this.deleteTodo(todo.id)}>
+                          Delete
+                        </button>
+                        <button
+                          onClick={() =>
+                            this.editTodo(todo.id, todo.text)
+                          }
+                        >
+                          Edit
+                        </button>
+                        <button onClick={() => this.handleDone(todo.id)}>
+                          Mark As Done
+                        </button>
+                        <button
+                          onClick={() => this.handleMoveUp(todo.id)}
+                          disabled={todos[0].id === todo.id}
+                        >
+                          Up
+                        </button>
+                        <button
+                          onClick={() => this.handleMoveDown(todo.id)}
+                          disabled={todos[todos.length - 1].id === todo.id}
+                        >
+                          Down
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </ul>
             </div>
@@ -118,30 +234,18 @@ class Todo extends React.Component {
 
           <input
             type="text"
-            value={this.state.inputValue}
+            value={inputValue}
             onChange={(event) =>
               this.setState({ inputValue: event.target.value })
             }
           />
           <button onClick={this.addTodo}>Add Todo</button>
-          {this.state.editInput.edit && (
-            <div>
-              <h2>Edit yout list</h2>
-              <input
-                type="text"
-                value={this.state.editInput.inputValue}
-                onChange={(e) => {
-                  this.setState({
-                    editInput: {
-                      ...this.state.editInput,
-                      inputValue: e.target.value,
-                    },
-                  });
-                }}
-              />
-              <button onClick={this.addEdit}>Edit Item</button>
-            </div>
-          )}
+          <div className="buttons">
+            <button onClick={this.handleDeleteCompletedTasks}>
+              Delete Completed Tasks
+            </button>
+            <button onClick={this.deleteAll}>Delete All</button>
+          </div>
         </div>
       </div>
     );
